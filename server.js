@@ -5,63 +5,156 @@ var { buildSchema } = require('graphql');
 // Construct a schema, using GraphQL schema language
 var schema = buildSchema(`
     type Query {
-        course(id: Int!): Course
-        courses(topic: String): [Course]
-    },
-    type Course {
-        id: Int
-        title: String
-        author: String
-        description: String
-        topic: String
-        url: String
+        interventions(building_id: Int!): Intervention
+        buildings(id: Int!): Building
+        employees(id: Int!): Employee
+    }
+
+    type Elevator {
+        elevator_serial_number: String
+        elevator_model: String
+        building_type: String
+        elevator_status: String
+        elevator_commissioning_date: String
+        elevator_last_inspection_date: String
+        elevator_inspection_certificate: String
+        elevator_information: String
+        elevator_notes: String
+        created_at: String
+        updated_at: String
+        column_id: Int
+    }
+
+    type Intervention {
+        building_id: Int!
+        building_details: [Building_detail]
+        start_date_time_intervention: String
+        end_date_time_intervention: String
+        employee_id: Int!
+        address: Address
+    }
+
+    type Building {
+        id: Int!
+        building_administrator_full_name: String
+        address: Address
+        customer: Customer
+        building_details: [Building_detail]
+        interventions: [Intervention]
+    }
+    
+    type Address {
+        street_number: String
+        street_name: String
+        suite_or_apartment: String
+        city: String
+        postal_code: String
+        country: String
+    }
+
+    type Customer {
+        company_name: String
+        company_contact_full_name: String
+    }
+
+    type Employee {
+        id: Int!
+        firstname: String
+        lastname: String
+        building_details: [Building_detail]
+        interventions: [Intervention]
+    }
+
+    type Building_detail {
+        building_id: Int!
+        information_key: String
+        value: String
     }
 `);
 
-// The root provides a resolver function for each API endpoint
-var coursesData = [
-  {
-      id: 1,
-      title: 'The Complete Node.js Developer Course',
-      author: 'Andrew Mead, Rob Percival',
-      description: 'Learn Node.js by building real-world applications with Node, Express, MongoDB, Mocha, and more!',
-      topic: 'Node.js',
-      url: 'https://codingthesmartway.com/courses/nodejs/'
-  },
-  {
-      id: 2,
-      title: 'Node.js, Express & MongoDB Dev to Deployment',
-      author: 'Brad Traversy',
-      description: 'Learn by example building & deploying real-world Node.js applications from absolute scratch',
-      topic: 'Node.js',
-      url: 'https://codingthesmartway.com/courses/nodejs-express-mongodb/'
-  },
-  {
-      id: 3,
-      title: 'JavaScript: Understanding The Weird Parts',
-      author: 'Anthony Alicea',
-      description: 'An advanced JavaScript course for everyone! Scope, closures, prototypes, this, build your own framework, and more.',
-      topic: 'JavaScript',
-      url: 'https://codingthesmartway.com/courses/understand-javascript/'
-  }
-]
-var getCourse = function(args) { 
-  var id = args.id;
-  return coursesData.filter(course => {
-      return course.id == id;
-  })[0];
-}
-var getCourses = function(args) {
-  if (args.topic) {
-      var topic = args.topic;
-      return coursesData.filter(course => course.topic === topic);
-  } else {
-      return coursesData;
-  }
-}
+
+//
+async function getInterventions({building_id}) {
+  // get intervention
+  var intervention = await querypg('SELECT * FROM "factintervention" WHERE building_id = ' + building_id)
+  resolve = intervention[0]
+  // get address
+  address = await query('SELECT * FROM addresses WHERE entity_type = "Building" AND entity_id = ' + building_id)
+
+  resolve['address']= address[0];
+
+  return resolve
+};
+
+async function getBuildings({id}) {
+  // get building
+  var buildings = await query('SELECT * FROM buildings WHERE id = ' + id )
+  resolve = buildings[0]
+
+  // get interventions
+  interventions = await querypg('SELECT * FROM "factintervention" WHERE building_id = ' + id)
+
+  // get customer
+  customer = await query('SELECT * FROM customers WHERE id = ' + resolve.customer_id)
+
+  resolve['customer']= customer[0];
+  resolve['interventions']= interventions;
+
+  return resolve
+};
+
+
+async function getEmployees({id}) {
+  // get employee
+  var employees = await query('SELECT * FROM employees WHERE id = ' + id )
+  resolve = employees[0]
+  
+  // get interventions
+  interventions = await querypg('SELECT * FROM "factintervention" WHERE employee_id = ' + id)
+  result = interventions[0]
+  console.log(interventions)
+
+
+  // get building details
+  building_details = await query('SELECT * FROM building_details WHERE building_id = ' + result.building_id)
+  console.log(building_details)
+
+  resolve['interventions']= interventions;
+  resolve['building_details']= building_details;
+
+  return resolve
+};
+
+
+function query (queryString) {
+  return new Promise((resolve, reject) => {
+      con.query(queryString, function(err, result) {
+          if (err) {
+              return reject(err);
+          } 
+          return resolve(result)
+      })
+  })
+};
+
+// define what is querypg
+function querypg (queryString) {
+  return new Promise((resolve, reject) => {
+      client.query(queryString, function(err, result) {
+          if (err) {
+              return reject(err);
+          }
+          return resolve(result.rows)
+      })
+  })
+};
 var root = {
-  course: getCourse,
-  courses: getCourses
+  // Récupération de l’adresse de l’immeuble
+  interventions: getInterventions,
+  // Récupération de l’information du client
+  buildings: getBuildings,
+  // Récupération de toutes les interventions effectuées par un employé
+  employees: getEmployees,
 };
 
 var app = express();
