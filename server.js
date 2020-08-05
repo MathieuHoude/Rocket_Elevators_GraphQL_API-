@@ -9,7 +9,7 @@ pgconnection();
 var schema = buildSchema(`
     type Query {
         buildings(id: Int!): Building
-        interventions(building_id: Int!): Intervention
+        interventions(id: Int!): Intervention
         employees(id: Int!): Employee
     }
 
@@ -77,19 +77,19 @@ var schema = buildSchema(`
 
 
 //
-async function specifyIntervention({building_id}) {
+async function specifyIntervention({id}) {
 
-  intervention = await querypg('SELECT * FROM "fact_intervention" WHERE building_id = ' + building_id)
+  intervention = await querypg('SELECT * FROM "fact_intervention" WHERE id = ' + id)
   resolve = intervention[0]
-  address = await query('SELECT * FROM addresses JOIN buildings ON buildings.address_id = addresses.id WHERE buildings.id = ' + building_id);
+  address = await query('SELECT * FROM addresses JOIN buildings ON buildings.address_id = addresses.id WHERE buildings.id = ' + resolve.building_id);
   resolve['address']= address[0];
   return resolve
 };
 
 async function specifyBuilding({id}) {
 
-  buildings = await query('SELECT * FROM buildings WHERE id = ' + id )
-  resolve = buildings[0]
+  res1 = await query('SELECT * FROM buildings WHERE id = ' + id )
+  resolve = res1[0]
   interventions = await querypg('SELECT * FROM "fact_intervention" WHERE building_id = ' + id )
   customer = await query('SELECT * FROM customers WHERE id = ' + resolve.customer_id)
 
@@ -101,21 +101,20 @@ async function specifyBuilding({id}) {
 
 
 async function specifyEmployee({id}) {
-  employees = await query('SELECT * FROM employees WHERE id = ' + id )
+  var employees = await query('SELECT * FROM employees WHERE id = ' + id )
   resolve = employees[0]
-  console.log(resolve)
   
   interventions = await querypg('SELECT * FROM "fact_intervention" WHERE employee_id = ' + id)
+  console.log(interventions)
   result = interventions[0]
-  console.log(result.building_id)
 
   building_details = await query('SELECT * FROM building_details WHERE building_id = ' + result.building_id)
-  console.log(building_details[0])
+  console.log(building_details)
 
   resolve['interventions']= interventions;
   resolve['building_details']= building_details;
-
   return resolve
+  
 };
 
 
