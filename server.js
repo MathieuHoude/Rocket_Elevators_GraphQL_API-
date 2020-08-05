@@ -1,99 +1,96 @@
 var express = require('express');
 var { graphqlHTTP } = require('express-graphql');
 var { buildSchema } = require('graphql');
+var query = require('./mysql.js');
+var { querypg, pgconnection } = require('./pg.js');
+pgconnection();
 
-// Construct a schema, using GraphQL schema language
+
 var schema = buildSchema(`
     type Query {
-        interventions(building_id: Int!): Intervention
         buildings(id: Int!): Building
+        interventions(building_id: Int!): Intervention
         employees(id: Int!): Employee
     }
 
-    type Elevator {
-        id: Int
-        building_id: Int
-        customer_id: Int
-        serial_number: String
-        commission_date: String
-        building_city: String
-        
-    }
+    type Building {
+      id: Int!
+      admin_full_name: String
+      admin_phone: String
+      admin_email: String
+      full_name_STA: String
+      phone_TA: String
+      email_TA: String
+      address_id: Int
+      customer: Customer
+      address: Address
+      building_details: [BuildingDetail]
+      interventions: [Intervention]
+  }
 
     type Intervention {
-        id: Int
-        employee_id: Int
-        building_id: Int
-        battery_id: Int
-        column_id: Int
-        elevator_id: Int
-        start_of_intervention: String
-        result: String
-        report: String
-        status: String
-    }
-
-    type Building {
-        id: Int!
-        building_administrator_full_name: String
-        address: Address
-        customer: Customer
-        building_details: [Building_detail]
-        interventions: [Intervention]
-    }
+      id: Int!
+      building_id: Int!
+      building_details: [BuildingDetail]
+      start_of_intervention: String
+      end_of_intervention: String
+      employee_id: Int!
+      status: String
+      report: String
+      result: String
+      address: Address
+  }
     
     type Address {
-        street_number: String
-        street_name: String
-        suite_or_apartment: String
+        number_and_street: String
         city: String
-        postal_code: String
+        state: String
         country: String
     }
 
     type Customer {
+        id: Int!
         company_name: String
-        company_contact_full_name: String
+        full_name_company_contact: String
+        company_contact_phone: String
+        company_contact_email: String
     }
 
     type Employee {
-        id: Int!
-        first_name: String
-        last_name: String
-        building_details: [Building_detail]
-        interventions: [Intervention]
-    }
+      id: Int!
+      email: String
+      first_name: String
+      last_name: String
+      title: String
+      interventions: [Intervention]
+      building: [Building]
+      buildingDetail: [BuildingDetail]
+  }
 
-    type Building_detail {
-        building_id: Int!
-        info_key: String
-        value: String
-    }
+    type BuildingDetail {
+      building_id: Int!
+      info_key: String
+      value: String
+      
+  }
 `);
 
 
 //
-async function getInterventions({building_id}) {
-  // get intervention
-  var intervention = await querypg('SELECT * FROM "fact_intervention" WHERE building_id = ' + building_id)
+async function specifyIntervention({building_id}) {
+
+  intervention = await querypg('SELECT * FROM "fact_intervention" WHERE building_id = ' + building_id)
   resolve = intervention[0]
-  // get address
-  address = await query('SELECT * FROM addresses WHERE entity_type = "Building" AND entity_id = ' + building_id)
-
+  address = await query('SELECT * FROM addresses JOIN buildings ON buildings.address_id = addresses.id WHERE buildings.id = ' + building_id);
   resolve['address']= address[0];
-
   return resolve
 };
 
-async function getBuildings({id}) {
-  // get building
-  var buildings = await query('SELECT * FROM buildings WHERE id = ' + id )
+async function specifyBuilding({id}) {
+
+  buildings = await query('SELECT * FROM buildings WHERE id = ' + id )
   resolve = buildings[0]
-
-  // get interventions
-  interventions = await querypg('SELECT * FROM "fact_intervention" WHERE building_id = ' + id)
-
-  // get customer
+  interventions = await querypg('SELECT * FROM "fact_intervention" WHERE building_id = ' + id )
   customer = await query('SELECT * FROM customers WHERE id = ' + resolve.customer_id)
 
   resolve['customer']= customer[0];
@@ -103,20 +100,17 @@ async function getBuildings({id}) {
 };
 
 
-async function getEmployees({id}) {
-  // get employee
-  var employees = await query('SELECT * FROM employees WHERE id = ' + id )
+async function specifyEmployee({id}) {
+  employees = await query('SELECT * FROM employees WHERE id = ' + id )
   resolve = employees[0]
+  console.log(resolve)
   
-  // get interventions
   interventions = await querypg('SELECT * FROM "fact_intervention" WHERE employee_id = ' + id)
   result = interventions[0]
-  console.log(interventions)
+  console.log(result.building_id)
 
-
-  // get building details
   building_details = await query('SELECT * FROM building_details WHERE building_id = ' + result.building_id)
-  console.log(building_details)
+  console.log(building_details[0])
 
   resolve['interventions']= interventions;
   resolve['building_details']= building_details;
@@ -125,35 +119,10 @@ async function getEmployees({id}) {
 };
 
 
-function query (queryString) {
-  return new Promise((resolve, reject) => {
-      con.query(queryString, function(err, result) {
-          if (err) {
-              return reject(err);
-          } 
-          return resolve(result)
-      })
-  })
-};
-
-// define what is querypg
-function querypg (queryString) {
-  return new Promise((resolve, reject) => {
-      client.query(queryString, function(err, result) {
-          if (err) {
-              return reject(err);
-          }
-          return resolve(result.rows)
-      })
-  })
-};
 var root = {
-  // Récupération de l’adresse de l’immeuble
-  interventions: getInterventions,
-  // Récupération de l’information du client
-  buildings: getBuildings,
-  // Récupération de toutes les interventions effectuées par un employé
-  employees: getEmployees,
+  buildings: specifyBuilding,
+  interventions: specifyIntervention,
+  employees: specifyEmployee,
 };
 
 var app = express();
@@ -163,4 +132,3 @@ app.use('/graphql', graphqlHTTP({
   graphiql: true,
 }));
 app.listen(4000);
-console.log('Running a GraphQL API server at http://localhost:4000/graphql');

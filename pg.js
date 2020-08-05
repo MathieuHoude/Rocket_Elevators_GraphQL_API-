@@ -1,9 +1,9 @@
 const {Client} = require('pg')
 var client = new Client({
     host: 'localhost',
-    user: 'postgres',
-    password: 'password',
-    database: 'Samuel_Chabot'
+    user: 'colin',
+    password: 'root',
+    database: 'rocketapp_api'
 });
 
 console.log("connection pg")
@@ -19,18 +19,18 @@ function pgconnection() {
     })
 } 
 
-function pgquery(queryString) {
+function querypg(queryString) {
     return new Promise((resolve, reject) => {
         client.query(queryString,function(err, result){
             if (err) {
                 return reject(err);
             }
-            return resolve(result);
+            return resolve(result.rows);
         })
     })
 }
 
 module.exports = {
-    pgquery,
+    querypg,
     pgconnection
 }
