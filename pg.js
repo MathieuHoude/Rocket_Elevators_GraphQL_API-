@@ -1,8 +1,8 @@
 const {Client} = require('pg')
 var client = new Client({
-    host: 'localhost',
-    user: 'postgres',
-    password: 'password',
+    host: 'codeboxx-postgresql.cq6zrczewpu2.us-east-1.rds.amazonaws.com',
+    user: 'codeboxx',
+    password: 'Codeboxx1!',
     database: 'Olivier_Godbout'
 });
 
