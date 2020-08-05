@@ -7,6 +7,7 @@ pgconnection();
 
 
 var schema = buildSchema(`
+    scalar DateTime
     type Query {
         buildings(id: Int!): Building
         interventions(id: Int!): Intervention
@@ -32,8 +33,8 @@ var schema = buildSchema(`
       id: Int!
       building_id: Int!
       building_details: [BuildingDetail]
-      start_of_intervention: String
-      end_of_intervention: String
+      start_of_intervention: DateTime
+      end_of_intervention: DateTime
       employee_id: Int!
       status: String
       report: String
@@ -76,7 +77,7 @@ var schema = buildSchema(`
 `);
 
 
-//
+
 async function specifyIntervention({id}) {
 
   intervention = await querypg('SELECT * FROM "fact_intervention" WHERE id = ' + id)
