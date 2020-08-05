@@ -6,7 +6,6 @@ var client = new Client({
     database: 'james'
 });
 
-console.log("connection pg")
 
 function pgconnection() {
     return new Promise((resolve, reject) => {
