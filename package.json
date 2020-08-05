@@ -1,0 +1,31 @@
+{
+  "name": "rocket_elevators_graphql_api-",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "dependencies": {
+    "ansi-styles": "^4.2.1",
+    "dotenv": "^8.2.0",
+    "express": "^4.17.1",
+    "express-graphql": "^0.11.0",
+    "graphql": "^15.3.0",
+    "mysql": "^2.18.1",
+    "pg": "^8.3.0",
+    "pg-adapter": "^1.1.43",
+    "pg-promise": "^10.5.8"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/OliGod12/Rocket_Elevators_GraphQL_API-.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/OliGod12/Rocket_Elevators_GraphQL_API-/issues"
+  },
+  "homepage": "https://github.com/OliGod12/Rocket_Elevators_GraphQL_API-#readme"
+}
