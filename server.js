@@ -11,27 +11,26 @@ var schema = buildSchema(`
     }
 
     type Elevator {
-        elevator_serial_number: String
-        elevator_model: String
-        building_type: String
-        elevator_status: String
-        elevator_commissioning_date: String
-        elevator_last_inspection_date: String
-        elevator_inspection_certificate: String
-        elevator_information: String
-        elevator_notes: String
-        created_at: String
-        updated_at: String
-        column_id: Int
+        id: Int
+        building_id: Int
+        customer_id: Int
+        serial_number: String
+        commission_date: String
+        building_city: String
+        
     }
 
     type Intervention {
-        building_id: Int!
-        building_details: [Building_detail]
-        start_date_time_intervention: String
-        end_date_time_intervention: String
-        employee_id: Int!
-        address: Address
+        id: Int
+        employee_id: Int
+        building_id: Int
+        battery_id: Int
+        column_id: Int
+        elevator_id: Int
+        start_of_intervention: String
+        result: String
+        report: String
+        status: String
     }
 
     type Building {
@@ -59,15 +58,15 @@ var schema = buildSchema(`
 
     type Employee {
         id: Int!
-        firstname: String
-        lastname: String
+        first_name: String
+        last_name: String
         building_details: [Building_detail]
         interventions: [Intervention]
     }
 
     type Building_detail {
         building_id: Int!
-        information_key: String
+        info_key: String
         value: String
     }
 `);
