@@ -35,7 +35,7 @@ Here is the query you need to enter:
 }
 
 
-## uery 3: Retrieval of all interventions carried out by a specified employee with the buildings associated with these interventions including the details (Table BuildingDetails) associated with these buildings.
+## Query 3: Retrieval of all interventions carried out by a specified employee with the buildings associated with these interventions including the details (Table BuildingDetails) associated with these buildings.
 Here is the query you need to enter:
 {
   employees(id: 1) {
