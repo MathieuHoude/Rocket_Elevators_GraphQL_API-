@@ -83,7 +83,7 @@ async function specifyIntervention({id}) {
 
   intervention = await querypg('SELECT * FROM "fact_intervention" WHERE id = ' + id)
   resolve = intervention[0]
-  address = await query('SELECT * FROM addresses JOIN buildings ON buildings.address_id = addresses.id WHERE buildings.id = ' + resolve.building_id);
+  address = await query('SELECT a.id, a.latitude, a.longitude, a.type_of_address, a.status, a.entity, a.number_and_street, a.suite_or_apartment, a.city, a.state, a.postal_code, a.country, a.notes, a.created_at, a.updated_at FROM addresses a JOIN buildings ON buildings.address_id = a.id WHERE buildings.id = ' + resolve.building_id);
   resolve['address']= address[0];
   return resolve
 };
@@ -100,22 +100,25 @@ async function specifyBuilding({id}) {
 
   return resolve
 };
-
+  
 
 async function specifyEmployee({id}) {
 	var employees = await query('SELECT * FROM employees WHERE id = ' + id )
 	
 	
 	var interventions = await querypg('SELECT * FROM "fact_intervention" WHERE employee_id = ' + id)
+	var building_info = await query("SELECT b.id, b.admin_full_name, b.admin_phone, b.admin_email, b.full_name_STA, b.phone_TA, b.email_TA, b.address_id, b.customer_id, b.created_at, b.updated_at FROM buildings b JOIN batteries ON batteries.building_id = b.id WHERE batteries.employee_id =" + id)
 
-	var building_info = await query("SELECT * FROM buildings JOIN batteries ON batteries.building_id = buildings.id WHERE batteries.employee_id =" + id)
 
+
+	console.log(building_info)
 	var building_details = await query("SELECT building_details.building_id, building_details.info_key, building_details.value FROM building_details JOIN buildings ON building_details.building_id = buildings.id JOIN batteries ON batteries.building_id = buildings.id JOIN employees ON batteries.employee_id = employees.id WHERE employees.id =" + id)
 
 
 	//creating a new object with the informations required
 	let interventionsArr = []
 	interventions.forEach(intervention => {
+
 		building_detailsArr = []
 		//get all of the building_details associated with the building and put it in the object
 		building_details.forEach(building => {
@@ -125,11 +128,15 @@ async function specifyEmployee({id}) {
 				building_detailsArr.push(building)
 			}
 		})
+		
+
 		//go trough all of the building and get their infos
 		building_info.forEach(building => {
 			building = JSON.stringify(building)
 			building = JSON.parse(building)
+
 			if(building.id === intervention.building_id) {
+
 				interventionsArr.push({
 					...intervention,
 					building: building,
