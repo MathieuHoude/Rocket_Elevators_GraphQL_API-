@@ -4,7 +4,7 @@ var { buildSchema } = require('graphql');
 var query = require('./mysql.js');
 var { querypg, pgconnection } = require('./pg.js');
 pgconnection();
-
+var PORT = process.env.PORT || 5000;
 
 var schema = buildSchema(`
     scalar DateTime
@@ -160,4 +160,4 @@ app.use('/graphql', graphqlHTTP({
   rootValue: root,
   graphiql: true,
 }));
-app.listen(4000);
+app.listen(PORT);
