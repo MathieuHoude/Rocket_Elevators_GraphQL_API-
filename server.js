@@ -5,8 +5,10 @@ var query = require('./mysql.js');
 var { querypg, pgconnection } = require('./pg.js');
 pgconnection();
 
+var PORT = process.env.PORT||4000;
 
 var schema = buildSchema(`
+    scalar DateTime
     type Query {
         buildings(id: Int!): Building
         interventions(id: Int!): Intervention
@@ -30,10 +32,11 @@ var schema = buildSchema(`
 
     type Intervention {
       id: Int!
-      building_id: Int!
+	  building_id: Int!
+	  building: Building
       building_details: [BuildingDetail]
-      start_of_intervention: String
-      end_of_intervention: String
+      start_of_intervention: DateTime
+      end_of_intervention: DateTime
       employee_id: Int!
       status: String
       report: String
@@ -65,10 +68,10 @@ var schema = buildSchema(`
       interventions: [Intervention]
       building: [Building]
       buildingDetail: [BuildingDetail]
-  }
+  	}
 
     type BuildingDetail {
-      building_id: Int!
+      building_id: Int
       info_key: String
       value: String
       
@@ -76,7 +79,7 @@ var schema = buildSchema(`
 `);
 
 
-//
+
 async function specifyIntervention({id}) {
 
   intervention = await querypg('SELECT * FROM "fact_intervention" WHERE id = ' + id)
@@ -101,21 +104,48 @@ async function specifyBuilding({id}) {
 
 
 async function specifyEmployee({id}) {
-  var employees = await query('SELECT * FROM employees WHERE id = ' + id )
-  resolve = employees[0]
-  
-  interventions = await querypg('SELECT * FROM "fact_intervention" WHERE employee_id = ' + id)
-  
-  result = interventions[0]
-  console.log(result.building_details)
-  
-  building_details = await query('SELECT * FROM building_details WHERE building_id = ' + result.building_id)
-  console.log(building_details)
+	var employees = await query('SELECT * FROM employees WHERE id = ' + id )
+	
+	
+	var interventions = await querypg('SELECT * FROM "fact_intervention" WHERE employee_id = ' + id)
 
-  resolve['interventions']= interventions;
-  resolve['building_details']= building_details;
-  return resolve
-  
+	var building_info = await query("SELECT * FROM buildings JOIN batteries ON batteries.building_id = buildings.id WHERE batteries.employee_id =" + id)
+
+	var building_details = await query("SELECT building_details.building_id, building_details.info_key, building_details.value FROM building_details JOIN buildings ON building_details.building_id = buildings.id JOIN batteries ON batteries.building_id = buildings.id JOIN employees ON batteries.employee_id = employees.id WHERE employees.id =" + id)
+
+
+	//creating a new object with the informations required
+	let interventionsArr = []
+	interventions.forEach(intervention => {
+		building_detailsArr = []
+		//get all of the building_details associated with the building and put it in the object
+		building_details.forEach(building => {
+			building = JSON.stringify(building)
+			building = JSON.parse(building)
+			if(building.building_id === intervention.building_id) {
+				building_detailsArr.push(building)
+			}
+		})
+		//go trough all of the building and get their infos
+		building_info.forEach(building => {
+			building = JSON.stringify(building)
+			building = JSON.parse(building)
+			if(building.id === intervention.building_id) {
+				interventionsArr.push({
+					...intervention,
+					building: building,
+					building_details: building_detailsArr
+				})
+			}
+		})
+	})
+
+	//returning the whole object
+	resolve = {
+		...employees[0],
+		interventions: interventionsArr
+	}
+	return resolve
 };
 
 
@@ -131,4 +161,4 @@ app.use('/graphql', graphqlHTTP({
   rootValue: root,
   graphiql: true,
 }));
-app.listen(4000);
+app.listen(PORT);

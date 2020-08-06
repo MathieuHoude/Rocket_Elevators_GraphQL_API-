@@ -2,10 +2,10 @@
 
 var mysql = require('mysql');
 var connection = mysql.createConnection({
-    host: 'localhost',
-    user: 'root'  ,
-    password: 'root',
-    database: 'rocketApp_development'  
+    host: 'codeboxx.cq6zrczewpu2.us-east-1.rds.amazonaws.com',
+    user: 'codeboxx'  ,
+    password: 'Codeboxx1!',
+    database: 'OlivierGodbout'  
 
 });
 
