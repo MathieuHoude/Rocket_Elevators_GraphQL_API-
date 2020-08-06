@@ -105,9 +105,10 @@ async function specifyEmployee({id}) {
   resolve = employees[0]
   
   interventions = await querypg('SELECT * FROM "fact_intervention" WHERE employee_id = ' + id)
-  console.log(interventions)
+  
   result = interventions[0]
-
+  console.log(result.building_details)
+  
   building_details = await query('SELECT * FROM building_details WHERE building_id = ' + result.building_id)
   console.log(building_details)
 
