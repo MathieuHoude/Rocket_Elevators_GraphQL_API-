@@ -2,17 +2,17 @@
 
 var mysql = require('mysql');
 var connection = mysql.createConnection({
-    host: 'codeboxx.cq6zrczewpu2.us-east-1.rds.amazonaws.com',
-    user: 'codeboxx'  ,
-    password: 'Codeboxx1!',
-    database: 'OlivierGodbout'  
+    host: 'localhost',
+    user: 'root',
+    password: 'root',
+    database: 'rocketApp_development'    
 
 });
-
-
-
-
 connection.connect();
+
+
+
+
 
 function query(queryString) {
     return new Promise((resolve, reject) => {

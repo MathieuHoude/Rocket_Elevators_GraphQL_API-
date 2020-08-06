@@ -2,16 +2,40 @@ var express = require('express');
 var { graphqlHTTP } = require('express-graphql');
 var { buildSchema } = require('graphql');
 var query = require('./mysql.js');
+var mysql = require('mysql');
+var connection = mysql.createConnection({
+  host: 'localhost',
+  user: 'root',
+  password: 'root',
+  database: 'rocketApp_development'    
+});
 var { querypg, pgconnection } = require('./pg.js');
+const { Connection } = require('pg');
 pgconnection();
 var PORT = process.env.PORT || 5000;
 
 var schema = buildSchema(`
     scalar DateTime
+
+    input EmployeeInput {
+      id: Int
+      user_id: Int
+      email: String
+      first_name: String
+      last_name: String
+      title: String
+
+    }
+
     type Query {
         buildings(id: Int!): Building
         interventions(id: Int!): Intervention
         employees(id: Int!): Employee
+    }
+
+    type Mutation {
+        createEmployee(input: EmployeeInput): Employee
+        updateEmployee(input: EmployeeInput): Employee
     }
 
     type Building {
@@ -77,23 +101,33 @@ var schema = buildSchema(`
   }
 `);
 
+class Employee {
+  constructor(id,user_id,email, first_name, last_name, title) {
+    this.id = id;
+    this.user_id = user_id;
+    this.email = email;
+    this.first_name = first_name;
+    this.last_name = last_name;
+    this.title = title;
+  }
+}
 
 
 async function specifyIntervention({id}) {
 
-  intervention = await querypg('SELECT * FROM "fact_intervention" WHERE id = ' + id)
-  resolve = intervention[0]
-  address = await query('SELECT * FROM addresses JOIN buildings ON buildings.address_id = addresses.id WHERE buildings.id = ' + resolve.building_id);
+  var intervention = await querypg('SELECT * FROM "fact_intervention" WHERE id = ' + id)
+  var resolve = intervention[0]
+  var address = await query('SELECT * FROM addresses JOIN buildings ON buildings.address_id = addresses.id WHERE buildings.id = ' + resolve.building_id);
   resolve['address']= address[0];
   return resolve
 };
 
 async function specifyBuilding({id}) {
 
-  res1 = await query('SELECT * FROM buildings WHERE id = ' + id )
-  resolve = res1[0]
-  interventions = await querypg('SELECT * FROM "fact_intervention" WHERE building_id = ' + id )
-  customer = await query('SELECT * FROM customers WHERE id = ' + resolve.customer_id)
+  var res1 = await query('SELECT * FROM buildings WHERE id = ' + id )
+  var resolve = res1[0]
+  var interventions = await querypg('SELECT * FROM "fact_intervention" WHERE building_id = ' + id )
+  var customer = await query('SELECT * FROM customers WHERE id = ' + resolve.customer_id)
 
   resolve['customer']= customer[0];
   resolve['interventions']= interventions;
@@ -149,6 +183,18 @@ async function specifyEmployee({id}) {
 
 
 var root = {
+  createEmployee: ({input}) => {
+    connection.query('INSERT INTO employees (id, user_id, first_name, last_name , email ,title) VALUES ('+input.id+', '+input.user_id+', "'+ input.first_name+'", "'+input.last_name+'", "'+input.email+'", "'+input.title+'")');
+    return new Employee(id, input);
+  },
+  updateEmployee: ({id, input}) => {
+    if (!connection[id]) {
+      throw new Error('no message exists with id ' + id);
+    }
+    // This replaces all old data, but some apps might want partial update.
+    fakeDatabase[id] = input;
+    return new Message(id, input);
+  },
   buildings: specifyBuilding,
   interventions: specifyIntervention,
   employees: specifyEmployee,
