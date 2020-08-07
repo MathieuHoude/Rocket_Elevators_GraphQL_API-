@@ -1,5 +1,3 @@
-
-
 var mysql = require('mysql');
 var connection = mysql.createConnection({
     host: 'codeboxx.cq6zrczewpu2.us-east-1.rds.amazonaws.com',
@@ -9,9 +7,6 @@ var connection = mysql.createConnection({
 
 });
 connection.connect();
-
-
-
 
 
 function query(queryString) {
@@ -25,4 +20,4 @@ function query(queryString) {
     })
 }
 
-module.exports = query
+module.exports = {connection, query }
