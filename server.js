@@ -1,33 +1,36 @@
 var express = require('express');
 var { graphqlHTTP } = require('express-graphql');
-var { buildSchema } = require('graphql');
+var { buildSchema, specifiedScalarTypes } = require('graphql');
 var query = require('./mysql.js');
 var mysql = require('mysql');
 var connection = mysql.createConnection({
-  host: 'localhost',
-  user: 'root',
-  password: 'root',
-  database: 'rocketApp_development'    
+  host: 'codeboxx.cq6zrczewpu2.us-east-1.rds.amazonaws.com',
+  user: 'codeboxx',
+  password: 'Codeboxx1!',
+  database: 'OlivierGodbout'    
 });
 var { querypg, pgconnection } = require('./pg.js');
 const { Connection } = require('pg');
 pgconnection();
-
-var PORT = process.env.PORT||4000;
+var PORT = process.env.PORT || 5000;
 
 var schema = buildSchema(`
     scalar DateTime
 
-    input InterventionInput {
-      id: Int
-      start_of_intervention: DateTime
-      end_of_intervention: DateTime
-      result: String
-      report: String
-      status: String
-      elevator_id: Int
-      created_at: DateTime
-      updated_at: DateTime
+    input ElevatorInput {
+		id: Int
+		serial_number: Int
+		model: String
+		elevator_type: String
+		status: String
+		commission_date: DateTime
+		date_of_last_inspection: DateTime
+		certificate_of_inspection: String
+		informations: String
+		notes: String
+		column_id: Int
+		created_at: DateTime
+		updated_at: DateTime
     }
 
     type Query {
@@ -37,8 +40,24 @@ var schema = buildSchema(`
     }
 
     type Mutation {
-        createIntervention(input: InterventionInput): Intervention
-        updateIntervention(input: InterventionInput): Intervention
+        createElevator(input: ElevatorInput): Elevator
+        updateElevator(input: ElevatorInput): Elevator
+    }
+
+    type Elevator {
+      id: Int
+      serial_number: Int
+      model: String
+      elevator_type: String
+      status: String
+      commission_date: DateTime
+	  date_of_last_inspection: DateTime
+	  certificate_of_inspection: String
+      informations: String
+      notes: String
+      column_id: Int
+      created_at: DateTime
+      updated_at: DateTime
     }
 
     type Building {
@@ -108,6 +127,22 @@ var schema = buildSchema(`
   }
 `);
 
+class Elevator {
+  constructor(id, serial_number, model, elevator_type, status, commission_date, date_of_last_inspection, certificate_of_inspection, informations, notes, column_id ) {
+	this.id = id;
+	this.serial_number = serial_number;
+    this.model = model;
+    this.elevator_type = elevator_type;
+    this.status = status;
+    this.commission_date = commission_date;
+    this.date_of_last_inspection = date_of_last_inspection;
+    this.certificate_of_inspection = certificate_of_inspection;
+    this.informations = informations;
+    this.notes = notes;
+    this.column_id = column_id;
+  }
+}
+
 
 
 async function specifyIntervention({id}) {
@@ -135,15 +170,9 @@ async function specifyBuilding({id}) {
 
 async function specifyEmployee({id}) {
 	var employees = await query('SELECT * FROM employees WHERE id = ' + id )
-	
-	
 	var interventions = await querypg('SELECT * FROM "fact_intervention" WHERE employee_id = ' + id)
-
 	var building_info = await query("SELECT * FROM buildings JOIN batteries ON batteries.building_id = buildings.id WHERE batteries.employee_id =" + id)
-
 	var building_details = await query("SELECT building_details.building_id, building_details.info_key, building_details.value FROM building_details JOIN buildings ON building_details.building_id = buildings.id JOIN batteries ON batteries.building_id = buildings.id JOIN employees ON batteries.employee_id = employees.id WHERE employees.id =" + id)
-
-
 	//creating a new object with the informations required
 	let interventionsArr = []
 	interventions.forEach(intervention => {
@@ -169,7 +198,6 @@ async function specifyEmployee({id}) {
 			}
 		})
 	})
-
 	//returning the whole object
 	resolve = {
 		...employees[0],
@@ -179,18 +207,53 @@ async function specifyEmployee({id}) {
 };
 
 
+
+
+
+
+
 var root = {
-  createIntervention: ({input}) => {
-    connection.query('INSERT INTO interventions (id, start_of_intervention, end_of_intervention, result, report, status, elevator_id, created_at, updated_at) VALUES ('+input.id+', "'+input.start_of_intervention+'", "'+ input.end_of_intervention+'", "'+input.result+'", "'+input.report+'", "'+input.status+'", '+ input.elevator_id+ ', NOW(), NOW())');
-    return input;
-  },
-  updateIntervention: ({input}) => {
-    connection.query('UPDATE interventions SET end_of_intervention = "'+input.end_of_intervention+'", status = "'+input.status+'", report = "'+input.report+'", result = "'+input.result+'", updated_at = NOW() WHERE id= '+input.id);
-    return input
-  },
-  buildings: specifyBuilding,
-  interventions: specifyIntervention,
-  employees: specifyEmployee,
+	//create a new elevator
+	createElevator: ({input}) => {
+		connection.query('INSERT INTO elevators ( serial_number, model, elevator_type, status, commission_date, date_of_last_inspection, certificate_of_inspection, informations, notes, column_id, created_at, updated_at) VALUES ( '+input.serial_number+', "'+input.model+'", "'+ input.elevator_type+'", "'+input.status+'", "'+ input.commission_date +'", "'+ input.date_of_last_inspection +'",  "'+ input.certificate_of_inspection+'", "'+ input.informations+'", "'+ input.notes+'", '+ input.column_id+', NOW(), NOW());');
+    	return input;
+	},
+
+	//update the elevator demanded
+	updateElevator: ({input}) => {	
+		if(input.status.toLowerCase() !== "intervention" && input.status.toLowerCase() !== "active" && input.status.toLowerCase() !== "inactive") {
+			input.status = "Please enter a valid status!"
+			return input
+		}
+		var sinformations, sserial_number, smodel, selevator_type, sstatus, dcommission_date, ddate_of_last_inspection, scertificate_of_inspection, snotes, icolumn_id;
+		result = query('SELECT * FROM elevators WHERE id = ' + input.id)
+		.then(e => {
+			// console.log(e)
+			//info = e.informations
+			//info = input.informations
+    
+      //check if the field has info in it and change the values accordingly
+			if(input.serial_number === undefined) {sserial_number = e[0].serial_number}else{sserial_number = input.serial_number}
+			if(input.model === undefined) {smodel = e[0].model}else{smodel = input.model}
+			if(input.elevator_type === undefined) {selevator_type = e[0].elevator_type}else{selevator_type = input.elevator_type}
+			if(input.status === undefined) {sstatus = e[0].status}else{sstatus = input.status}
+			if(input.commission_date === undefined) {dcommission_date = e[0].commission_date.toISOString().split('T')[0];}else{dcommission_date = input.commission_date}
+			if(input.date_of_last_inspection === undefined) {ddate_of_last_inspection = e[0].date_of_last_inspection.toISOString().split('T')[0];}else{ddate_of_last_inspection = input.date_of_last_inspection}
+			if(input.certificate_of_inspection === undefined) {scertificate_of_inspection = e[0].certificate_of_inspection}else{scertificate_of_inspection = input.certificate_of_inspection}
+			if(input.informations === undefined) {sinformations = e[0].informations}else{sinformations = input.informations}
+			if(input.notes === undefined) {snotes = e[0].notes}else{snotes = input.notes}
+      if(input.column_id === undefined) {icolumn_id = e[0].column_id}else{icolumn_id = input.column_id}
+      
+			connection.query('UPDATE elevators SET serial_number = "'+ sserial_number +'", model = "'+ smodel+'", elevator_type = "'+selevator_type+'", status = "'+ sstatus+'", commission_date = "'+dcommission_date+'", date_of_last_inspection = "'+ddate_of_last_inspection+'", certificate_of_inspection = "'+scertificate_of_inspection+'", informations = "'+sinformations+'", notes = "'+snotes+'", column_id = '+icolumn_id+' ,updated_at = NOW() WHERE id = '+input.id+';');
+			
+
+		})
+		return input;
+	},
+
+	buildings: specifyBuilding,
+	interventions: specifyIntervention,
+	employees: specifyEmployee,
 };
 
 var app = express();
