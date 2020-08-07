@@ -25,7 +25,7 @@ The sub-folder GraphQL-BaseRequirements contains the queries you'll want to run,
 ![View of Postman](https://i.imgur.com/Y3zz9kZ.png)
 
 ## You can also take queries from Postman and run them directly in the GraphQL interface of our Heroku deployment
-*https://rocket-elevators-graphql.herokuapp.com/graphql*
+*https://rocket-elevators-graphql.herokuapp.com/graphql* \
 Simply copy the body from the query in Postman and paste it into the left panel of the GraphQL interface then click the play button to do the query.
 ![View of GraphQL on Heroku](https://i.imgur.com/YELRXGl.png)
 
