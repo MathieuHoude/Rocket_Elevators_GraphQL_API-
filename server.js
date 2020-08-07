@@ -17,6 +17,18 @@ var PORT = process.env.PORT || 5000;
 var schema = buildSchema(`
     scalar DateTime
 
+    input InterventionInput {
+      id: Int
+      start_of_intervention: DateTime
+      end_of_intervention: DateTime
+      result: String
+      report: String
+      status: String
+      elevator_id: Int
+      created_at: DateTime
+      updated_at: DateTime
+    }
+
     input ElevatorInput {
 		id: Int
 		serial_number: Int
@@ -40,6 +52,8 @@ var schema = buildSchema(`
     }
 
     type Mutation {
+        createIntervention(input: InterventionInput): Intervention
+        updateIntervention(input: InterventionInput): Intervention
         createElevator(input: ElevatorInput): Elevator
         updateElevator(input: ElevatorInput): Elevator
     }
@@ -76,7 +90,7 @@ var schema = buildSchema(`
   }
 
     type Intervention {
-      id: Int!
+      id: Int
       building_id: Int!
       building: Building
       building_details: [BuildingDetail]
@@ -213,6 +227,27 @@ async function specifyEmployee({id}) {
 
 
 var root = {
+  createIntervention: ({input}) => {
+    connection.query('INSERT INTO interventions (id, start_of_intervention, end_of_intervention, result, report, status, elevator_id, created_at, updated_at) VALUES ('+input.id+', "'+input.start_of_intervention+'", "'+ input.end_of_intervention+'", "'+input.result+'", "'+input.report+'", "'+input.status+'", '+ input.elevator_id+ ', NOW(), NOW())');
+    return input;
+  },
+	updateIntervention: ({input}) => {	
+		var update_id, update_soi, update_eoi, update_result, update_report, update_status, update_eid;
+		result = query('SELECT * FROM interventions WHERE id = ' + input.id)
+		.then(e => {
+      //check if the field has info in it and change the values accordingly
+			if(input.id === undefined) {update_id = e[0].id}else{update_id = input.id}
+			if(input.start_of_intervention === undefined) {update_soi = e[0].start_of_intervention.toISOString()}else{update_soi = input.start_of_intervention}
+			if(input.end_of_intervention === undefined) {update_eoi = e[0].end_of_intervention.toISOString()}else{update_eoi = input.end_of_intervention}
+			if(input.result === undefined) {update_result = e[0].result}else{update_result = input.result}
+			if(input.report === undefined) {update_report = e[0].report}else{update_report = input.report}
+			if(input.status === undefined) {update_status = e[0].status}else{update_status = input.status}
+			if(input.elevator_id === undefined) {update_eid = e[0].elevator_id}else{update_eid = input.elevator_id}
+			connection.query('UPDATE interventions SET id = '+ update_id +', start_of_intervention = "'+ update_soi+'", end_of_intervention = "'+update_eoi+'", result = "'+ update_result+'", report = "'+update_report+'", status = "'+update_status+'", elevator_id = '+update_eid+', updated_at = NOW() WHERE id = '+input.id+';');
+			
+		})
+		return input;
+	},
 	//create a new elevator
 	createElevator: ({input}) => {
 		connection.query('INSERT INTO elevators ( serial_number, model, elevator_type, status, commission_date, date_of_last_inspection, certificate_of_inspection, informations, notes, column_id, created_at, updated_at) VALUES ( '+input.serial_number+', "'+input.model+'", "'+ input.elevator_type+'", "'+input.status+'", "'+ input.commission_date +'", "'+ input.date_of_last_inspection +'",  "'+ input.certificate_of_inspection+'", "'+ input.informations+'", "'+ input.notes+'", '+ input.column_id+', NOW(), NOW());');
