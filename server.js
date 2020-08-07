@@ -13,19 +13,21 @@ var { querypg, pgconnection } = require('./pg.js');
 const { Connection } = require('pg');
 pgconnection();
 
-// var PORT = process.env.PORT||4000;
+var PORT = process.env.PORT||4000;
 
 var schema = buildSchema(`
     scalar DateTime
 
-    input EmployeeInput {
+    input InterventionInput {
       id: Int
-      user_id: Int
-      email: String
-      first_name: String
-      last_name: String
-      title: String
-
+      start_of_intervention: DateTime
+      end_of_intervention: DateTime
+      result: String
+      report: String
+      status: String
+      elevator_id: Int
+      created_at: DateTime
+      updated_at: DateTime
     }
 
     type Query {
@@ -35,8 +37,8 @@ var schema = buildSchema(`
     }
 
     type Mutation {
-        createEmployee(input: EmployeeInput): Employee
-        updateEmployee(input: EmployeeInput): Employee
+        createIntervention(input: InterventionInput): Intervention
+        updateIntervention(input: InterventionInput): Intervention
     }
 
     type Building {
@@ -56,15 +58,18 @@ var schema = buildSchema(`
 
     type Intervention {
       id: Int!
-	  building_id: Int!
-	  building: Building
+      building_id: Int!
+      building: Building
       building_details: [BuildingDetail]
       start_of_intervention: DateTime
       end_of_intervention: DateTime
+      elevator_id: Int
       employee_id: Int!
       status: String
       report: String
       result: String
+      created_at: DateTime
+      updated_at: DateTime
       address: Address
   }
     
@@ -85,6 +90,7 @@ var schema = buildSchema(`
 
     type Employee {
       id: Int!
+      user_id: Int
       email: String
       first_name: String
       last_name: String
@@ -102,16 +108,6 @@ var schema = buildSchema(`
   }
 `);
 
-class Employee {
-  constructor(id,user_id,email, first_name, last_name, title) {
-    this.id = id;
-    this.user_id = user_id;
-    this.email = email;
-    this.first_name = first_name;
-    this.last_name = last_name;
-    this.title = title;
-  }
-}
 
 
 async function specifyIntervention({id}) {
@@ -184,17 +180,13 @@ async function specifyEmployee({id}) {
 
 
 var root = {
-  createEmployee: ({input}) => {
-    connection.query('INSERT INTO employees (id, user_id, first_name, last_name , email ,title) VALUES ('+input.id+', '+input.user_id+', "'+ input.first_name+'", "'+input.last_name+'", "'+input.email+'", "'+input.title+'")');
-    return new Employee(id, input);
+  createIntervention: ({input}) => {
+    connection.query('INSERT INTO interventions (id, start_of_intervention, end_of_intervention, result, report, status, elevator_id, created_at, updated_at) VALUES ('+input.id+', "'+input.start_of_intervention+'", "'+ input.end_of_intervention+'", "'+input.result+'", "'+input.report+'", "'+input.status+'", '+ input.elevator_id+ ', NOW(), NOW())');
+    return input;
   },
-  updateEmployee: ({id, input}) => {
-    if (!connection[id]) {
-      throw new Error('no message exists with id ' + id);
-    }
-    // This replaces all old data, but some apps might want partial update.
-    fakeDatabase[id] = input;
-    return new Message(id, input);
+  updateIntervention: ({input}) => {
+    connection.query('UPDATE interventions SET end_of_intervention = "'+input.end_of_intervention+'", status = "'+input.status+'", report = "'+input.report+'", result = "'+input.result+'", updated_at = NOW() WHERE id= '+input.id);
+    return input
   },
   buildings: specifyBuilding,
   interventions: specifyIntervention,
