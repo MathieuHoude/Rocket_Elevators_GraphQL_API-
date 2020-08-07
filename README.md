@@ -17,7 +17,7 @@ We were given a list of questions which we were to answer using queries in Graph
 
 ## 2 - On the left panel click Collections and Open the Folder W8-OlivierGodbout
 The sub-folder GraphQL-BaseRequirements contains the queries you'll want to run, open it up and select one. After selecting a query you can click on the upper body tab to open  and view the query.
- You can change the parameter number next to id to change your query.
+ You can change the parameter number next to id to change your query.</br>
  `"type-of-query"(id:<CHANGE ME!>) {`
  ![View of Postman](https://i.imgur.com/M546XR8.png)
  
