@@ -11,7 +11,7 @@ We were given a list of questions which we were to answer using queries in Graph
 
  ## INSTRUCTIONS TO FOLLOW
  
- ## 1 - Click link to get open Postman and access the collections needed for the queries
+ ## 1 - Click link to open Postman and access the collections needed for the queries
 [![Run in Postman](https://run.pstmn.io/button.svg)](https://app.getpostman.com/run-collection/3f98d5e6a531e3025b47)
 
 
