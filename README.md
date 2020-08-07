@@ -26,6 +26,8 @@ The sub-folder GraphQL-BaseRequirements contains the queries you'll want to run,
 
 ## You can also take queries from Postman and run them directly in the GraphQL interface of our Heroku deployment
 *https://rocket-elevators-graphql.herokuapp.com/graphql*
+Simply copy the body from the query in Postman and paste it into the left panel of the GraphQL interface then click the play button to do the query.
+![View of GraphQL on Heroku](https://i.imgur.com/YELRXGl.png)
 
 ## BONUS - We also implemented Create, Get, and Update functions for the addresses, buildings, elevators, columns and batteries fields of the MySQL database. 
 To access them open the respective folder of the query you'd like to run, GraphQL Get, Update or Create.\
