@@ -95,14 +95,14 @@ mutation {
   }
 }
 
-## update what ever in the elevator
+## update what ever in the elevator full template
 mutation {
   updateElevator(input:{
-    id: 950
-    status: "Inactive"
+    id: 212
 		serial_number: 123123
     model: "nice"
     elevator_type: "corporate"
+    status: "Active"
     commission_date: "2002-01-01"
     date_of_last_inspection: "1001-09-01"
     certificate_of_inspection: "123123"
@@ -110,8 +110,35 @@ mutation {
     notes: "bonjour"
     column_id: 170
   	} ) {
-      id
-    	status
-			
+    id
+    serial_number
+    model
+    elevator_type
+    status
+    commission_date
+    date_of_last_inspection
+    certificate_of_inspection
+    informations
+    notes
+    column_id
+  }
+}
+
+
+## get info for elevators 
+{
+  elevators(id: 1) {
+    serial_number
+    model
+    elevator_type
+    status
+    commission_date
+    date_of_last_inspection
+    certificate_of_inspection
+    informations
+    notes
+    column_id
+    created_at
+    updated_at
   }
 }

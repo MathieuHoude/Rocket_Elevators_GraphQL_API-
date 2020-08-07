@@ -3,6 +3,7 @@ var { graphqlHTTP } = require('express-graphql');
 var { buildSchema, specifiedScalarTypes } = require('graphql');
 var query = require('./mysql.js');
 var mysql = require('mysql');
+
 var connection = mysql.createConnection({
   host: 'codeboxx.cq6zrczewpu2.us-east-1.rds.amazonaws.com',
   user: 'codeboxx',
@@ -15,11 +16,12 @@ pgconnection();
 var PORT = process.env.PORT || 5000;
 
 var schema = buildSchema(`
-    scalar DateTime
+	scalar DateTime
+	scalar BigInt
 
     input ElevatorInput {
 		id: Int
-		serial_number: Int
+		serial_number: BigInt
 		model: String
 		elevator_type: String
 		status: String
@@ -37,6 +39,7 @@ var schema = buildSchema(`
         buildings(id: Int!): Building
         interventions(id: Int!): Intervention
         employees(id: Int!): Employee
+        elevators(id: Int!): Elevator
     }
 
     type Mutation {
@@ -46,13 +49,13 @@ var schema = buildSchema(`
 
     type Elevator {
       id: Int
-      serial_number: Int
+      serial_number: BigInt
       model: String
       elevator_type: String
       status: String
       commission_date: DateTime
-	  date_of_last_inspection: DateTime
-	  certificate_of_inspection: String
+      date_of_last_inspection: DateTime
+      certificate_of_inspection: String
       informations: String
       notes: String
       column_id: Int
@@ -141,8 +144,9 @@ class Elevator {
 
 
 
-async function specifyIntervention({id}) {
 
+//--------------------all get query---------------------------
+async function specifyIntervention({id}) {
   var intervention = await querypg('SELECT * FROM "fact_intervention" WHERE id = ' + id)
   var resolve = intervention[0]
   var address = await query('SELECT * FROM addresses JOIN buildings ON buildings.address_id = addresses.id WHERE buildings.id = ' + resolve.building_id);
@@ -151,18 +155,14 @@ async function specifyIntervention({id}) {
 };
 
 async function specifyBuilding({id}) {
-
   var res1 = await query('SELECT * FROM buildings WHERE id = ' + id )
   var resolve = res1[0]
   var interventions = await querypg('SELECT * FROM "fact_intervention" WHERE building_id = ' + id )
   var customer = await query('SELECT * FROM customers WHERE id = ' + resolve.customer_id)
-
   resolve['customer']= customer[0];
   resolve['interventions']= interventions;
-
   return resolve
 };
-
 
 async function specifyEmployee({id}) {
 	var employees = await query('SELECT * FROM employees WHERE id = ' + id )
@@ -202,6 +202,12 @@ async function specifyEmployee({id}) {
 	return resolve
 };
 
+async function specifyElevator({id}) {
+	var intervention = await query('SELECT * FROM elevators WHERE id = ' + id)
+	return resolve = intervention[0]
+}
+//--------------------all get query---------------------------
+
 
 
 
@@ -221,13 +227,9 @@ var root = {
 			input.status = "Please enter a valid status!"
 			return input
 		}
-		var sinformations, sserial_number, smodel, selevator_type, sstatus, dcommission_date, ddate_of_last_inspection, scertificate_of_inspection, snotes, icolumn_id;
+		let sinformations, sserial_number, smodel, selevator_type, sstatus, dcommission_date, ddate_of_last_inspection, scertificate_of_inspection, snotes, icolumn_id;
 		result = query('SELECT * FROM elevators WHERE id = ' + input.id)
 		.then(e => {
-			// console.log(e)
-			//info = e.informations
-			//info = input.informations
-    
       //check if the field has info in it and change the values accordingly
 			if(input.serial_number === undefined) {sserial_number = e[0].serial_number}else{sserial_number = input.serial_number}
 			if(input.model === undefined) {smodel = e[0].model}else{smodel = input.model}
@@ -241,15 +243,14 @@ var root = {
       if(input.column_id === undefined) {icolumn_id = e[0].column_id}else{icolumn_id = input.column_id}
       
 			connection.query('UPDATE elevators SET serial_number = "'+ sserial_number +'", model = "'+ smodel+'", elevator_type = "'+selevator_type+'", status = "'+ sstatus+'", commission_date = "'+dcommission_date+'", date_of_last_inspection = "'+ddate_of_last_inspection+'", certificate_of_inspection = "'+scertificate_of_inspection+'", informations = "'+sinformations+'", notes = "'+snotes+'", column_id = '+icolumn_id+' ,updated_at = NOW() WHERE id = '+input.id+';');
-			
-
 		})
 		return input;
 	},
 
 	buildings: specifyBuilding,
 	interventions: specifyIntervention,
-	employees: specifyEmployee,
+  employees: specifyEmployee,
+  elevators: specifyElevator,
 };
 
 var app = express();
