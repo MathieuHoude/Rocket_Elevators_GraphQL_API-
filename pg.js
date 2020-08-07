@@ -1,9 +1,9 @@
 const {Client} = require('pg')
 var client = new Client({
-    host: 'localhost',
-    user: 'colin',
-    password: 'root',
-    database: 'rocketapp_api'
+    host: 'codeboxx-postgresql.cq6zrczewpu2.us-east-1.rds.amazonaws.com',
+    user: 'codeboxx',
+    password: 'Codeboxx1!',
+    database: 'Olivier_Godbout'
 });
 
 console.log("connection pg")

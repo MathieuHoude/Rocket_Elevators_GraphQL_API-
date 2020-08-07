@@ -26,7 +26,7 @@ Here is the query you need to enter:
     }
     interventions {
       start_of_intervention
-      end_of_intervention
+      end_of_intervention  
       status
       result
       report
@@ -55,5 +55,63 @@ Here is the query you need to enter:
         value
       }
     }
+  }
+}
+
+
+## create a new elevator:
+mutation {
+  createElevator(input:{
+    serial_number: 69, 
+    model: "what ever model", 
+    elevator_type: "premium", 
+    status: "Active", 
+    commission_date: "2020-08-06",
+    date_of_last_inspection: "2020-08-06",
+    certificate_of_inspection: "thisisrealitellyou", 
+    informations: "blabla", 
+    notes: "blabla2", 
+    column_id: 10
+  	} ) {
+      serial_number
+      model
+      elevator_type
+      status
+      commission_date
+      informations
+      notes
+      column_id
+  }
+}
+
+## update status elevator:
+mutation {
+  updateElevator(input:{
+    id: 950,
+    status: "Inactive"
+  	} ) {
+      id
+    	status
+  }
+}
+
+## update what ever in the elevator
+mutation {
+  updateElevator(input:{
+    id: 950
+    status: "Inactive"
+		serial_number: 123123
+    model: "nice"
+    elevator_type: "corporate"
+    commission_date: "2002-01-01"
+    date_of_last_inspection: "1001-09-01"
+    certificate_of_inspection: "123123"
+    informations: "allo"
+    notes: "bonjour"
+    column_id: 170
+  	} ) {
+      id
+    	status
+			
   }
 }
