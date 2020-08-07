@@ -25,7 +25,7 @@ Here is the query you need to enter:
 ## Query 2: Retrieving customer information and the list of interventions that took place for a specific building.
 Here is the query you need to enter:
 {
-  buildings(id: 5) {
+  buildings(id: 3) {
     customer {
       company_name
       full_name_company_contact
@@ -99,14 +99,14 @@ mutation {
   updateElevator(input:{
     id: 212
 		serial_number: 123123
-    model: "nice"
+    model: "Standard"
     elevator_type: "corporate"
     status: "Active"
     commission_date: "2002-01-01"
     date_of_last_inspection: "1001-09-01"
     certificate_of_inspection: "123123"
-    informations: "allo"
-    notes: "bonjour"
+    informations: "some infos"
+    notes: "some notes"
     column_id: 170
   	} ) {
     id
