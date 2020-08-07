@@ -3,10 +3,18 @@ Here is the query you need to enter:
 {
   interventions(id: 1) {
     address {
+      id
+      latitude
+      longitude
+      type_of_address
+      status
+      entity
       number_and_street
+      suite_or_apartment
       city
       state
-      country
+      postal_code
+      notes
     }
     start_of_intervention
     end_of_intervention
@@ -84,16 +92,7 @@ mutation {
   }
 }
 
-## update status elevator:
-mutation {
-  updateElevator(input:{
-    id: 950,
-    status: "Inactive"
-  	} ) {
-      id
-    	status
-  }
-}
+
 
 ## update what ever in the elevator full template
 mutation {
@@ -266,5 +265,260 @@ mutation {
     notes
     building_id
     employee_id
+  }
+}
+
+## create a building
+mutation {
+  createBuilding(input:{
+    admin_full_name: "bob"
+    admin_phone: "514-941-0399"
+    admin_email: "bob.marley@gmail.com"
+    full_name_STA: "chris"
+    phone_TA: "413-251-7455"
+    email_TA: "chris@gmail.com"
+    address_id: 10
+    customer_id: 10
+  	} ) {
+    admin_full_name
+    admin_phone
+    admin_email
+    full_name_STA
+    phone_TA
+    email_TA
+    address_id
+    customer_id
+  }
+}
+
+## update a building
+mutation {
+  updateBuilding(input:{
+   	id: 100
+    admin_full_name: "Jean"
+    admin_phone: "401-205-1236"
+    admin_email: "jean@gmail.com"
+    full_name_STA: "Pedro"
+    phone_TA: "510-205-1253"
+    email_TA: "pedro@gmail.com"
+    address_id: 10
+    customer_id: 10
+  	} ) {
+    id
+    admin_full_name
+    admin_phone
+    admin_email
+    full_name_STA
+    phone_TA
+    email_TA
+    address_id
+    customer_id
+  }
+}
+
+## get info single building
+{
+  singlebuilding(id: 93) {
+    id
+    admin_full_name
+    admin_phone
+    admin_email
+    full_name_STA
+    phone_TA
+    email_TA
+    address_id
+    customer_id
+    created_at
+    updated_at
+  }
+}
+
+## get info for an address
+{
+  address(id: 10) {
+    id
+    latitude
+    longitude
+    type_of_address
+    status
+    entity
+    number_and_street
+    suite_or_apartment
+    city
+    state
+    postal_code
+    notes
+    created_at
+    updated_at
+  }
+}
+
+## create an address
+mutation {
+  createAddress(input:{
+    type_of_address: "Shipping"
+    status: "Active"
+    entity: "Building"
+    number_and_street: "8700 Main St"
+    suite_or_apartment: "Apt. 304"
+    city: "Fairborn"
+    state: "OH"
+    postal_code: "45324"
+    notes: "some notes"
+  	} ) {
+    type_of_address
+    status
+    entity
+    number_and_street
+    suite_or_apartment
+    city
+    state
+    postal_code
+    notes
+  }
+}
+
+## update an address
+mutation {
+  updateAddress(input:{
+   	id: 101
+    latitude: 39.82137
+    longitude: -84.020305
+    type_of_address: "Shipping"
+    status: "Active"
+    entity: "Building"
+    number_and_street: "8700 Main St"
+    suite_or_apartment: "Apt. 300"
+    city: "Fairborn"
+    state: "OH"
+    postal_code: "45324"
+    country: "USA"
+    notes: "notes"
+    
+  	} ) {
+    id
+    latitude
+    longitude
+    type_of_address
+    status
+    entity
+    number_and_street
+    suite_or_apartment
+    city
+    state
+    postal_code
+    country
+    notes
+    
+  }
+}
+
+# call rest api in graphql
+## get status of elevator:
+{
+  elevators(id: 10) {
+    id
+  	status
+  }
+}
+## update status elevator:
+mutation {
+  updateElevator(input:{
+    id: 950,
+    status: "Inactive"
+  	} ) {
+      id
+    	status
+  }
+}
+
+## get status of column
+{
+  columns(id: 10) {
+    id
+  	status
+  }
+}
+## update status of columm
+mutation {
+  updateColumn(input:{
+    id: 10,
+    status: "Inactive"
+  	} ) {
+      id
+    	status
+  }
+}
+
+## get status of battery
+{
+  batteries(id: 10) {
+    id
+  	status
+  }
+}
+## update status of battery
+mutation {
+  updateBattery(input:{
+    id: 10,
+    status: "Inactive"
+  	} ) {
+      id
+    	status
+  }
+}
+
+## get list of all inactive elevators
+{
+	inactiveelevators {
+    id
+    serial_number
+    model
+    elevator_type
+    status
+    commission_date
+    date_of_last_inspection
+    certificate_of_inspection
+    informations
+    notes
+    column_id
+    created_at
+    updated_at
+  }
+}
+
+## get a list a building that has atleast 1 intervention
+{
+	interventionBuildings {
+    id
+    admin_full_name
+    admin_phone
+    admin_email
+    full_name_STA
+    phone_TA
+    email_TA
+    address_id
+    customer_id
+    created_at
+    updated_at
+    
+  }
+}
+
+## get a list of leads that are not yet clients in the pas 30 days
+{
+	leads {
+    id
+    Full_Name
+    Compagny_Name
+    Email
+    Phone
+    Project_Name
+    Project_Description
+    Department
+    Message
+    File_name
+    created_at
+    updated_at    
   }
 }
